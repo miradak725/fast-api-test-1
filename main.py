@@ -19,22 +19,29 @@ class Todo(BaseModel):
 
 # Root endpoint
 @app.get("/")
-async def root():
+async def root()->dict: 
     """
     Root endpoint returning a welcome message.
 
+    Inputs:
+        None
     Returns:
         dict: A simple greeting message confirming the API is running.
     """
-    return {"message": "Hello, World!"}
+    try:
+        return {"message": "Hello, World!"}
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
 # Chat endpoint
 @app.get("/chat", tags=["chat"])
-def chat():
+def chat(message:str) -> dict:
     """
     Chat endpoint returning a greeting message.
 
+    Inputs:
+        message (str): The message from the user.
     Returns:
         dict: A friendly greeting message.
     """
@@ -43,7 +50,7 @@ def chat():
 
 # Get Todo by ID
 @app.get('/todos/{id}', tags=["todos"])
-def get_todo(id:int):
+def get_todo(id:int) -> dict:
     """
     Retrieve a todo item by its unique ID.
 
@@ -63,11 +70,17 @@ def get_todo(id:int):
 
 
 # Get All Todos
-@app.get('/todos', tags=["todos"])
+@app.get(
+    '/todos',
+    summary="Retrieve all todo items",
+    description="Fetch a list of all todo items available in the system.", 
+    tags=["todos"])
 def get_todos():
     """
     Retrieve all todo items.
 
+    Inputs:
+        None
     Returns:
         list: A list of all todo items.
     """
@@ -133,8 +146,11 @@ def delete_todo(id:int):
     Raises:
         HTTPException: If the todo with the given ID does not exist (404 Not Found).
     """
-    for index,todo in enumerate(all_todos):
-        if todo['id']==id:
-            all_todos.pop(index)
-            return {"message":"Todo deleted successfully"}
+    try:
+        for index,todo in enumerate(all_todos):
+            if todo['id']==id:
+                all_todos.pop(index)
+                return {"message":"Todo deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Todo not found")
