@@ -1,7 +1,8 @@
 from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException, status , Query
-from typing import Annotated
 from typing import Optional
+from utils import verify_user, generate_response
+from schemas import ChatInput, UserchatHistory, analyseModel
 
 app = FastAPI()
 
@@ -59,24 +60,37 @@ chat_history = [
 ]  # In-memory storage for chat history grouped by user
 
 
-# Request model for chat endpoint
-class ChatRecord(BaseModel):
-    """Response model for chat endpoint."""
-    role: str
-    content: str
-    reference: Optional[str] = None
 
-class UserchatHistory(BaseModel):
-    """Response model for user chat history."""
-    user_id: int
-    chat_history: list[ChatRecord]
+def add_chat_history(user_id: int, question: str, answer: str, reference: Optional[str] = None):
+    """
+    Add a new chat record to the chat history for a specific user.
 
-# Input model for chat creation
-class ChatInput(BaseModel):
-    """Input model for creating a new chat."""
-    user_id: int
-    question: str
+    Args:
+        user_id (int): The ID of the user.
+        question (str): The user's question.
+        answer (str): The assistant's answer.
+        reference (Optional[str]): An optional reference for the answer.
 
+    """
+    for user in chat_history:
+        if user["user_id"] == user_id:
+            user["chat_history"].append({"role": "user", "content": question})
+            user["chat_history"].append({"role": "assistant", "content": answer, "reference": reference})
+            return
+
+
+# def generate_answer(question: str) -> str:
+#     """
+#     Simulate answer generation for a given question.
+
+#     Args:
+#         question (str): The user's question.
+
+#     Returns:
+#         str: A simulated answer to the question.
+#     """
+#     # Simulate some answer generation logic
+#     return f"This is a simulated answer to your question: '{question}'."
 
 # Root endpoint
 @app.get("/")
@@ -94,26 +108,36 @@ async def root():
 @app.post("/chat", tags=["chat"], status_code=status.HTTP_201_CREATED)
 def chat(user_input: ChatInput):
     """
-    Append a new question to an existing user's chat_history.
+    Handle chat interactions by receiving a user's question and returning an answer.
     """
+    if not verify_user(user_input.user_id):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found."
+        )
+
     if not user_input.question:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Question must be provided."
         )
 
-    for user in chat_history:
-        if user["user_id"] == user_input.user_id:
-            user_message={"role": "user", "content": user_input.question}
-            assistant_message={"role": "assistant", "content": "This is a generated answer.", "reference": None}
-            user["chat_history"].append(user_message)
-            user["chat_history"].append(assistant_message)
-            return {"user": user_message, "assistant": assistant_message}
+    try:
+        response = generate_response(user_input.question, user_input.user_id)
+        add_chat_history(user_input.user_id, user_input.question, response.answer, response.reference)
+        return response
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while processing your request."
+        )
 
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail="User not found."
-    )
+    # raise HTTPException(
+    #     status_code=status.HTTP_404_NOT_FOUND,
+    #     detail="User not found."
+    # )
+
+
 #Get chat history endpoint
 @app.get("/history", tags=["chat"], response_model=UserchatHistory)
 def get_chat_history(user_id: int) -> UserchatHistory:
@@ -139,6 +163,29 @@ def get_chat_history(user_id: int) -> UserchatHistory:
         status_code=status.HTTP_404_NOT_FOUND,
         detail="User not found."
     )
+
+
+# /analysis/create POST user_id, focus_id -> user_id, focus_id, analysis
+@app.post("/analysis/create", tags=["Analysis"])
+def create_analysis(user_id: int, focus_id: int)-> analyseModel:
+
+    if not verify_user(user_id):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found."
+        )
+    try:
+        return analyseModel(
+            user_id=user_id,
+            focus_id=focus_id,
+            analysis="This is a generated analysis."
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while creating the analysis."
+        )
+
 
 # # /analysis/create POST user_id, focus_id -> user_id, focus_id, analysis
 # @app.post("/analysis/create", tags=["analysis"], response_model=UserchatHistory)
