@@ -6,7 +6,7 @@ class ChatRecord(BaseModel):
     """Response model for chat endpoint."""
     role: str
     content: str
-    reference: Optional[str] = None
+    reference: Optional[List[str]] = []
 
 # Response model for user chat history
 class UserchatHistory(BaseModel):
