@@ -1,4 +1,4 @@
-# FastAPI TODO example
+# FastAPI RAG Chatbot
 
 A lightweight RAG (Retrieval-Augmented Generation) chatbot API built with FastAPI, LangChain, and Hugging Face Transformers.
 
