@@ -4,8 +4,6 @@ Simple FastAPI demo that manages an in-memory list of todos.
 
 Quick summary
 - Python + FastAPI + Pydantic
-- Single file: main.py
-- Additional async demo: async_routes.py
 
 Requirements
 - Python 3.8+
