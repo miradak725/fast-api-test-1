@@ -1,8 +1,14 @@
 # FastAPI TODO example
 
-Simple FastAPI demo that manages an in-memory list of todos.
+A lightweight RAG (Retrieval-Augmented Generation) chatbot API built with FastAPI, LangChain, and Hugging Face Transformers.
 
-Quick summary
+Features
+
+- Retrieves relevant documents using BAAI/bge-large-en embeddings.
+- Generates grounded answers via HuggingFaceH4/zephyr-7b-beta.
+- Provides chat, history, and analysis endpoints.
+
+Modular and production-ready FastAPI structure.
 - Python + FastAPI + Pydantic
 
 Requirements
