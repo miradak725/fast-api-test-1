@@ -1,17 +1,51 @@
 from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException, status , Query
 from typing import Optional
-from utils import verify_user, generate_response
-from schemas import ChatInput, UserchatHistory, analyseModel
+from utils import verify_user
+from rag_chain import generate_answer, retrieve, retrieve_method
+from schemas import ChatInput, ChatResponse,UserchatHistory, analyseModel
+# from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
+# from transformers import pipeline
 from logger import logger
 
 app = FastAPI()
+retriever = retrieve(retrieve_method)
 logger.info("FastAPI app initialized.")
 
-# /chat POST question,user_id -> question,answer,reference,user_id
-# /history GET user_id -> List[message]
-# /analysis/create POST user_id, focus_id -> user_id, focus_id, analysis
 
+# ---- GLOBAL INIT ----
+
+# READER_MODEL_NAME = "HuggingFaceH4/zephyr-7b-beta"
+# logger.info("Initializing model and pipeline at startup...")
+# # Configure quantization settings for 4-bit loading
+# bnb_config = BitsAndBytesConfig(
+#             load_in_4bit=True,
+#             bnb_4bit_use_double_quant=True,
+#             bnb_4bit_quant_type="nf4",
+#             bnb_4bit_compute_dtype=torch.bfloat16,
+#         )        
+
+# # Load the causal language model
+# model = AutoModelForCausalLM.from_pretrained(
+#         READER_MODEL_NAME, 
+#         quantization_config=bnb_config,
+#         )        
+
+# # Load the tokenizer
+# tokenizer = AutoTokenizer.from_pretrained(READER_MODEL_NAME)
+# logger.info(f"Model {READER_MODEL_NAME} loaded successfully in 4-bit mode.")
+# # Create a text-generation pipeline
+# llm = pipeline(
+#         model=model,
+#         tokenizer=tokenizer,
+#         task="text-generation",
+#         do_sample=True,
+#         temperature=0.2,
+#         repetition_penalty=1.1,
+#         return_full_text=False,
+#         max_new_tokens=500,
+#         )
+# logger.debug("Text generation pipeline initialized.")
 
 chat_history = [
     {
@@ -109,7 +143,7 @@ async def root():
 
 # chat endpoint
 @app.post("/chat", tags=["chat"], status_code=status.HTTP_201_CREATED)
-def chat(user_input: ChatInput):
+def chat(user_input: ChatInput)->ChatResponse:
     """
     Handle chat interactions by receiving a user's question and returning an answer.
     """
@@ -129,11 +163,20 @@ def chat(user_input: ChatInput):
         )
 
     try:
-        response = generate_response(user_input.question, user_input.user_id)
+        response ,references= generate_answer(user_input.question,retriever)
+
         logger.debug(f"Generated response for user_id {user_input.user_id}: {response}")
-        add_chat_history(user_input.user_id, user_input.question, response.answer, response.reference)
+        logger.info(f"Starting chat history update for user_id: {user_input.user_id}")
+
+        add_chat_history(user_input.user_id, user_input.question, response)
         logger.info(f"Chat history updated for user_id {user_input.user_id}")
-        return response
+        chat_response ={
+            "user_id": user_input.user_id,
+            "question": user_input.question,
+            "answer": response,
+            "references":references,
+        }
+        return chat_response
     
     except Exception as e:
         logger.error(f"Error occurred while processing request for user_id {user_input.user_id}: {e}")
