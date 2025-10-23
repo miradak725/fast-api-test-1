@@ -1,6 +1,5 @@
-from schemas import ResponseModel
 from typing import Optional
-
+# from rag_chain import rag_chain
 users = [
     {"id": 1, "name": "John Doe", "email": "john@example.com"},
     {"id": 2, "name": "Jane Smith", "email": "jane@example.com"},
@@ -40,19 +39,19 @@ def generate_answer(question: str) -> str:
     return f"This is a simulated answer to your question: '{question}'."
 
 
-def generate_response(question: str, user_id: int) -> ResponseModel:
-    """
-    Simulate answer generation for a given question.
+# def generate_response(question: str, user_id: int) -> ResponseModel:
+#     """
+#     Simulate answer generation for a given question.
 
-    Args:
-        question (str): The user's question.
+#     Args:
+#         question (str): The user's question.
 
-    Returns:
-        ResponseModel: The simulated response model.
-    """
-    answer = f"This is a simulated answer to your question: '{question}'."
-    return ResponseModel(
-        user_id=user_id,
-        question=question,
-        answer=answer,   
-    )
+#     Returns:
+#         ResponseModel: The simulated response model.
+#     """
+#     answer = rag_chain.invoke(question)
+#     return ResponseModel(
+#         user_id=user_id,
+#         question=question,
+#         answer=answer,   
+#     )
