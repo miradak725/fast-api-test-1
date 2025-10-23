@@ -5,7 +5,7 @@ A lightweight RAG (Retrieval-Augmented Generation) chatbot API built with FastAP
 Features
 
 - Retrieves relevant documents using BAAI/bge-large-en embeddings.
-- Generates grounded answers via HuggingFaceH4/zephyr-7b-beta.
+- Generates grounded answers via llama3.2.
 - Provides chat, history, and analysis endpoints.
 
 Modular and production-ready FastAPI structure.
