@@ -9,7 +9,7 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 
 #create handlers
 stream_handler = logging.StreamHandler(sys.stdout)
-file_handler = logging.FileHandler('app.log')
+file_handler = logging.FileHandler('logs/app.log')
 
 # set formatters to handlers
 stream_handler.setFormatter(formatter)

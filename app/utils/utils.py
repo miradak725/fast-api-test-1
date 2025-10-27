@@ -1,4 +1,6 @@
 from typing import Optional
+from core.logger import logger
+
 # from rag_chain import rag_chain
 users = [
     {"id": 1, "name": "John Doe", "email": "john@example.com"},
@@ -19,10 +21,16 @@ def verify_user(id: int) -> bool:
     Returns:
         bool: True if the user exists, False otherwise.
     """
-    for user in users:
-        if user["id"] == id:
-            return True
-    return False
+    try:
+        for user in users:
+            if user["id"] == id:
+                logger.debug("verifying user...")
+                return True
+        return False
+    
+    except Exception as e   :     
+        logger.exception(f"Unexpected error while verifying user: {e}")
+        return False
 
 
 def generate_answer(question: str) -> str:
