@@ -3,7 +3,7 @@ from app.models.token_usage import TokenUsage
 from sqlmodel import select
 from datetime import datetime
 from core.logger import logger
-
+from sqlmodel import Session
 
 
 
@@ -12,10 +12,10 @@ class TokenService:
         self.MONTHLY_TOKEN_LIMIT = monthly_limit
    
     # get_token_count
-    def get_token_count(self, user_id: int, session) -> TokenUsage:
+    def get_token_count(self, user_id: int, session:Session) -> TokenUsage:
         """Retrieve token count for a specific user."""
         try:
-            statement = select(TokenUsage).where(TokenUsage.user_id == user_id)
+            statement = select(TokenUsage).where(TokenUsage.user_id == user_id,TokenUsage.month==datetime.utcnow().month)
             record = session.exec(statement).first()
             if record:
                 logger.info(f"Retrieved token count for user_id={user_id}: {record.tokens_used} used, {record.remaining_tokens} remaining")
