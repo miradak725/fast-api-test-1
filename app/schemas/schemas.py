@@ -1,4 +1,5 @@
 from typing import List,Optional
+from datetime import datetime
 from pydantic import BaseModel,Field
 
 # Response model for individual chat records
@@ -20,7 +21,7 @@ class ChatInput(BaseModel):
     user_id: int
     question: str
 
-class ChatResponse(BaseModel):
+class ChatOutput(BaseModel):
     """Response model for chat endpoint."""
     user_id: int
     question: str
@@ -28,10 +29,33 @@ class ChatResponse(BaseModel):
     references: Optional[List[str]] = []
     # references: List[str] 
 
+class AnalyseInput(BaseModel):
+    user_id:int
+    focus_id:int
 
-class analyseModel(BaseModel):
+class AnalyseOutput(BaseModel):
     user_id: int
     focus_id: int
     analysis: str
+
+
+class FocusOutput(BaseModel):
+    focus_id:int
+    focus_name:str
+    reports:List['FocusReport']
+
+class FocusReport(BaseModel):
+    country:str
+    description:str
+    created_at:str
+    
+
+class TokenUsageOutput(BaseModel):
+    user_id: int
+    month:int
+    tokens_used:int
+    remaining_tokens:int
+    updated_at: datetime
+
 
  
