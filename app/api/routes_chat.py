@@ -2,7 +2,7 @@ from fastapi import HTTPException, status,APIRouter
 from app.utils.utils import verify_user
 from app.utils.rag_chain import retrieve_method, generate_answer,load_retriever
 from app.db.chat_history import chat_history
-from app.schemas.schemas import ChatInput,ChatResponse
+from app.schemas.schemas import ChatInput,ChatOutput
 from typing import Optional
 from core.logger import logger
 
@@ -30,7 +30,7 @@ def add_chat_history(user_id: int, question: str, answer: str, reference: Option
 
 # chat endpoint
 @router.post("/generate", tags=["Chat"], status_code=status.HTTP_201_CREATED)
-async def chat(user_input: ChatInput)->ChatResponse:
+async def chat(user_input: ChatInput)->ChatOutput:
     """
     Handle chat interactions by receiving a user's question and returning an answer.
     """

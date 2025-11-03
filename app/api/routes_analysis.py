@@ -1,28 +1,30 @@
 from fastapi import HTTPException, status,APIRouter
-from app.utils.utils import verify_user
-from app.schemas.schemas import analyseModel
 from core.logger import logger
+from app.service.analysis_service import AnalysisService
+from app.schemas.schemas import AnalyseInput,AnalyseOutput
+
+import requests
+import json
+import httpx
+import aiohttp
+import zstandard as zstd
 
 router = APIRouter()
 
+# @app.get("/call-external")
+# async def call_external_api():
+#     async with httpx.AsyncClient() as client:
+#         response = await client.get("https://api.github.com")
+#         return response.json()
 
-@router.post("/create", tags=["Analysis"],response_model=analyseModel)
-async def create_analysis(user_id: int, focus_id: int)-> analyseModel:
 
-    if not verify_user(user_id):
-        logger.error(f"User verification failed for user_id={user_id}")
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found."
-        )
+# analysis endpoint
+@router.post("/create", tags=["Analysis"],response_model=AnalyseOutput, status_code=status.HTTP_201_CREATED)
+async def create_analysis(user_id: int, focus_id: int)->AnalyseOutput:
+
     try:
-        logger.debug(f"Generating analysis for user_id={user_id}, focus_id={focus_id}")
-        result=analyseModel(
-            user_id=user_id,
-            focus_id=focus_id,
-            analysis="This is a generated analysis."
-        )
-        logger.info(f"Analysis generated for user_id={user_id}, focus_id={focus_id} successfully")
+        analysis_service = AnalysisService()
+        result = await analysis_service.generate_analysis(user_id=user_id, focus_id=focus_id)
         return result
     except Exception as e:
         logger.exception(f"Error generating analysis for user_id={user_id}, focus_id={focus_id}: {e}")

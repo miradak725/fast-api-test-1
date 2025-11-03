@@ -1,7 +1,6 @@
 from app.schemas.schemas import UserchatHistory
 from fastapi import APIRouter,HTTPException,status
 from app.db.chat_history import chat_history
-from typing import Optional
 
 from core.logger import logger
 
